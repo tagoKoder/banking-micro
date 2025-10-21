@@ -1,0 +1,404 @@
+{
+  "info": {
+    "_postman_id": "b9c3a5d1-9be6-4c74-b1a1-acc-postman-collection",
+    "name": "Banking Microservices (Client & Account)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Client",
+      "item": [
+        {
+          "name": "List Clients",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrlClient}}/api/clients",
+              "host": [
+                "{{baseUrlClient}}"
+              ],
+              "path": [
+                "api",
+                "clients"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Client by ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrlClient}}/api/clients/{{clientId}}",
+              "host": [
+                "{{baseUrlClient}}"
+              ],
+              "path": [
+                "api",
+                "clients",
+                "{{clientId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Client",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"dni\": \"1004\", \"name\": \"Dave\", \"gender\": \"M\", \"age\": 26, \"address\": \"Street 4\", \"phone\": \"300000004\", \"active\": true}"
+            },
+            "url": {
+              "raw": "{{baseUrlClient}}/api/clients",
+              "host": [
+                "{{baseUrlClient}}"
+              ],
+              "path": [
+                "api",
+                "clients"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Client",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"id\": 1, \"dni\": \"1001\", \"name\": \"Alice Updated\", \"gender\": \"F\", \"age\": 30, \"address\": \"Street 1\", \"phone\": \"300000001\", \"active\": true}"
+            },
+            "url": {
+              "raw": "{{baseUrlClient}}/api/clients/1",
+              "host": [
+                "{{baseUrlClient}}"
+              ],
+              "path": [
+                "api",
+                "clients",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Partial Update Client",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"active\": false}"
+            },
+            "url": {
+              "raw": "{{baseUrlClient}}/api/clients/partial/1",
+              "host": [
+                "{{baseUrlClient}}"
+              ],
+              "path": [
+                "api",
+                "clients",
+                "partial",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Client",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrlClient}}/api/clients/3",
+              "host": [
+                "{{baseUrlClient}}"
+              ],
+              "path": [
+                "api",
+                "clients",
+                "3"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Account",
+      "item": [
+        {
+          "name": "List Accounts",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrlAccount}}/api/accounts",
+              "host": [
+                "{{baseUrlAccount}}"
+              ],
+              "path": [
+                "api",
+                "accounts"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Account by ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrlAccount}}/api/accounts/{{accountId}}",
+              "host": [
+                "{{baseUrlAccount}}"
+              ],
+              "path": [
+                "api",
+                "accounts",
+                "{{accountId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"number\": \"ACC-100\", \"type\": \"savings\", \"initialAmount\": 1000.0, \"active\": true, \"clientId\": 1}"
+            },
+            "url": {
+              "raw": "{{baseUrlAccount}}/api/accounts",
+              "host": [
+                "{{baseUrlAccount}}"
+              ],
+              "path": [
+                "api",
+                "accounts"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Account",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"id\": 1, \"number\": \"ACC-001\", \"type\": \"checking\", \"initialAmount\": 500.0, \"active\": true, \"clientId\": 1}"
+            },
+            "url": {
+              "raw": "{{baseUrlAccount}}/api/accounts/1",
+              "host": [
+                "{{baseUrlAccount}}"
+              ],
+              "path": [
+                "api",
+                "accounts",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Partial Update Account",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"active\": false}"
+            },
+            "url": {
+              "raw": "{{baseUrlAccount}}/api/accounts/partial/1",
+              "host": [
+                "{{baseUrlAccount}}"
+              ],
+              "path": [
+                "api",
+                "accounts",
+                "partial",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Account",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrlAccount}}/api/accounts/2",
+              "host": [
+                "{{baseUrlAccount}}"
+              ],
+              "path": [
+                "api",
+                "accounts",
+                "2"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Transactions",
+      "item": [
+        {
+          "name": "List Transactions",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrlAccount}}/api/transactions",
+              "host": [
+                "{{baseUrlAccount}}"
+              ],
+              "path": [
+                "api",
+                "transactions"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Transaction by ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrlAccount}}/api/transactions/{{transactionId}}",
+              "host": [
+                "{{baseUrlAccount}}"
+              ],
+              "path": [
+                "api",
+                "transactions",
+                "{{transactionId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Transaction (deposit)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"accountId\": 1, \"type\": \"DEPOSIT\", \"amount\": 200.0}"
+            },
+            "url": {
+              "raw": "{{baseUrlAccount}}/api/transactions",
+              "host": [
+                "{{baseUrlAccount}}"
+              ],
+              "path": [
+                "api",
+                "transactions"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Transaction (withdraw)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"accountId\": 1, \"type\": \"WITHDRAW\", \"amount\": -50.0}"
+            },
+            "url": {
+              "raw": "{{baseUrlAccount}}/api/transactions",
+              "host": [
+                "{{baseUrlAccount}}"
+              ],
+              "path": [
+                "api",
+                "transactions"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Report",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrlAccount}}/api/transactions/reportes?clienteId={{clientId}}&fecha={{start}},{{end}}",
+              "host": [
+                "{{baseUrlAccount}}"
+              ],
+              "path": [
+                "api",
+                "reportes"
+              ],
+              "query": [
+                {
+                  "key": "clienteId",
+                  "value": "{{clientId}}"
+                },
+                {
+                  "key": "fecha",
+                  "value": "{{start}},{{end}}"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": []
+}
