@@ -36,27 +36,36 @@ docker compose down --remove-orphans
 
 ## 2) Endpoints clave
 
-### Client (http://localhost:8081)httpGET /api/clients
+### Client [`http://localhost:8081`]
+```http
 GET /api/clients/{id}
 POST /api/clients
 PUT /api/clients/{id}
 PUT /api/clients/partial/{id}
 DELETE /api/clients/{id}
-### Account (http://localhost:8080)httpGET /api/accounts
+```
+### Account [http://localhost:8080]
+```http
 GET /api/accounts/{id}
 POST /api/accounts
 PUT /api/accounts/{id}
 PUT /api/accounts/partial/{id}
 DELETE /api/accounts/{id}
+```
 
-### Transactions (http://localhost:8080)httpGET /api/transactions
+### Transactions [http://localhost:8080]
+```http
 GET /api/transactions/{id}
 POST /api/transactions
 Ejemplo JSON:json{ "accountId": 1, "type": "DEPOSIT|WITHDRAW", "amount": 200 }
+```
 
-### Reporte http GET /api/reportes?clienteId={id}&amp;fecha={YYYY-MM-DD},{YYYY-MM-DD}
+### Reporte
 Ejemplo:
+```http
 GET /api/reportes?clienteId=2&amp;fecha=2022-02-01,2022-02-15
+```
+
 ## 🧪 3) Datos de ejemplo (precargados en H2)
 
 ### Clientes
