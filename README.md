@@ -103,3 +103,33 @@ curl "http://localhost:8080/api/reportes?clienteId=2&fecha=2022-02-01,2022-02-15
 docker run --rm -v ${PWD}\client:/app  -w /app maven:3.9.6-eclipse-temurin-11 mvn -B test
 docker run --rm -v ${PWD}\account:/app -w /app maven:3.9.6-eclipse-temurin-11 mvn -B test
 ```
+
+## 📬 6) Postman
+
+Para probar los microservicios de forma rápida y organizada, sigue estos pasos:
+
+### 🗂️ Colección
+Importa la colección ubicada en la raíz del proyecto:
+
+Banking-Microservices.postman_collection.json
+
+### 🌐 Environment
+Crea un nuevo Environment en Postman con las siguientes variables:
+
+```text
+baseUrlClient   = http://localhost:8081
+baseUrlAccount  = http://localhost:8080
+clientId        = 2
+start           = 2022-02-01
+end             = 2022-02-15
+```
+
+Estas variables permiten parametrizar las peticiones y facilitar la ejecución de pruebas.
+
+### Folders a ejecutar
+Una vez configurado el entorno, ejecuta los siguientes folders dentro de la colección:
+- Client
+- Account
+- Transactions
+
+Cada uno contiene peticiones clave para validar el funcionamiento de los endpoints, incluyendo creación, consulta, actualización y generación de reportes.
