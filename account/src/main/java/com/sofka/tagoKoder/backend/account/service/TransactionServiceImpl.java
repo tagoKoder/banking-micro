@@ -1,25 +1,28 @@
 package com.sofka.tagoKoder.backend.account.service;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.sofka.tagoKoder.backend.account.exception.InsufficientBalanceException;
 import com.sofka.tagoKoder.backend.account.exception.NotFoundException;
 import com.sofka.tagoKoder.backend.account.integration.client.ClientGateway;
+import com.sofka.tagoKoder.backend.account.mapper.BankStamentMapper;
+import com.sofka.tagoKoder.backend.account.mapper.TransactionMapper;
 import com.sofka.tagoKoder.backend.account.model.Transaction;
 import com.sofka.tagoKoder.backend.account.model.dto.AccountDto;
 import com.sofka.tagoKoder.backend.account.model.dto.BankStatementDto;
-import com.sofka.tagoKoder.backend.account.model.dto.BankStatementReportDto;
+import com.sofka.tagoKoder.backend.account.model.dto.PageResponse;
 import com.sofka.tagoKoder.backend.account.model.dto.TransactionDto;
 import com.sofka.tagoKoder.backend.account.repository.TransactionRepository;
-import com.sofka.tagoKoder.backend.account.model.dto.AccountWithMovementsDto;
 
 @Service
 public class TransactionServiceImpl implements TransactionService {
@@ -27,19 +30,32 @@ public class TransactionServiceImpl implements TransactionService {
     private final TransactionRepository transactionRepository;
     private final AccountService accountService; 
     private final ClientGateway clientGateway;
+    private final TransactionMapper transactionMapper;
+    private final BankStamentMapper bankStatementMapper;
 
-    public TransactionServiceImpl(TransactionRepository transactionRepository, AccountService accountService, ClientGateway clientGateway) {
+    public TransactionServiceImpl(TransactionRepository transactionRepository, AccountService accountService, ClientGateway clientGateway, TransactionMapper transactionMapper, BankStamentMapper bankStatementMapper) {
         this.transactionRepository = transactionRepository;
         this.accountService = accountService;
         this.clientGateway = clientGateway;
+        this.transactionMapper = transactionMapper;
+        this.bankStatementMapper = bankStatementMapper;
     }
 
     @Override
-    public List<TransactionDto> getAll() {
-        // Get all transactions
-        return transactionRepository.findAll().stream()
-                .map(TransactionDto::fromEntity).collect(Collectors.toList());
-
+    public PageResponse<TransactionDto> getAll(Pageable pageable) {
+        Page<Transaction> page = transactionRepository.findAll(pageable);
+        List<TransactionDto> content = page.getContent()
+            .stream()
+            .map(transactionMapper::toTransactionDto)
+            .collect(Collectors.toList());
+        return new PageResponse<>(
+            content,
+            page.getNumber(),
+            page.getSize(),
+            page.getTotalElements(),
+            page.getTotalPages(),
+            page.isLast()
+        );
     }
 
     @Override
@@ -47,7 +63,7 @@ public class TransactionServiceImpl implements TransactionService {
         // Get transactions by id
         Transaction tr = transactionRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Transaction not found with id: " + id));
-        return TransactionDto.fromEntity(tr);
+        return transactionMapper.toTransactionDto(tr);
     }
 
     @Override
@@ -65,62 +81,65 @@ public class TransactionServiceImpl implements TransactionService {
         // Setting up balance
         transactionDto.setBalance(balance + transactionDto.getAmount());
         transactionDto.setDate(new Date());
+        Transaction tr = transactionMapper.toModel(transactionDto);
+        Transaction saved = transactionRepository.save(tr);
         // Create transaction
-        return TransactionDto.fromEntity(
-                transactionRepository.save(
-                        transactionDto.toEntity()));
+        return transactionMapper.toTransactionDto(saved);
     }
 
-    @Override
-    public BankStatementReportDto getStatement(Long clientId, LocalDate start, LocalDate end) {
-        var client = clientGateway.getById(clientId)
-            .orElseThrow(() -> new NotFoundException("Client not found with id: " + clientId));
 
-        var accounts = accountService.getAllByClientId(clientId);
+        @Override
+    public PageResponse<BankStatementDto> getStatementPage(
+        Long clientId, LocalDate start, LocalDate end, Pageable pageable) {
 
-        // Convertir LocalDate -> java.util.Date para tu repositorio
-        var zone = ZoneId.systemDefault();
-        Date startDate = Date.from(start.atStartOfDay(zone).toInstant());
-        Date endDate   = Date.from(end.atTime(LocalTime.MAX).atZone(zone).toInstant());
+    var client = clientGateway.getById(clientId)
+        .orElseThrow(() -> new NotFoundException("Client not found with id: " + clientId));
 
-        List<AccountWithMovementsDto> accountBlocks = new ArrayList<>();
+    List<AccountDto> accounts = accountService.getAllByClientId(clientId);
+    if (accounts.isEmpty()) {
+        return PageResponse.<BankStatementDto>builder()
+            .content(List.of())
+            .page(pageable.getPageNumber())
+            .size(pageable.getPageSize())
+            .totalElements(0)
+            .totalPages(0)
+            .last(true)
+            .build();
+    }
 
-        for (AccountDto acc : accounts) {
-            var txs = transactionRepository
-                    .findByAccountIdAndDateBetweenOrderByDate(acc.getId(), startDate, endDate)
-                    .stream()
-                    .map(TransactionDto::fromEntity)
-                    .collect(Collectors.toList());
+    var zone = ZoneId.systemDefault();
+    Date startDate = Date.from(start.atStartOfDay(zone).toInstant());
+    Date endDate   = Date.from(end.atTime(LocalTime.MAX).atZone(zone).toInstant());
 
-            // Movimientos detallados para esta cuenta
-            var movements = txs.stream()
-                    .map(tx -> BankStatementDto.fromEntity(tx, acc, client.getName()))
-                    .collect(Collectors.toList());
+    List<Long> accountIds = accounts.stream().map(AccountDto::getId).collect(Collectors.toList());
+    Map<Long, AccountDto> accMap = accounts.stream()
+        .collect(Collectors.toMap(AccountDto::getId, a -> a));
 
-            // Saldo final = balance del último movimiento (o saldo inicial si no hay movimientos)
-            double finalBalance = txs.isEmpty() ? acc.getInitialAmount()
-                                                : txs.get(txs.size() - 1).getBalance();
+    Page<Transaction> pageTx = transactionRepository
+        .findByAccountIdInAndDateBetween(accountIds, startDate, endDate, pageable);
 
-            accountBlocks.add(AccountWithMovementsDto.builder()
-                    .account(acc)
-                    .finalBalance(finalBalance)
-                    .movements(movements)
-                    .build());
-        }
+    List<BankStatementDto> content = pageTx.getContent().stream()
+        .map((Transaction tr) -> {
+            AccountDto acc = accMap.get(tr.getAccountId());
+            TransactionDto txDto = transactionMapper.toTransactionDto(tr);
+            return bankStatementMapper.toDto(txDto, acc, client.getName());
+        })
+        .collect(Collectors.toList());
 
-        return BankStatementReportDto.builder()
-                .clientId(clientId)
-                .clientName(client.getName())
-                .start(start)
-                .end(end)
-                .accounts(accountBlocks)
-                .build();
+    return PageResponse.<BankStatementDto>builder()
+        .content(content)
+        .page(pageTx.getNumber())
+        .size(pageTx.getSize())
+        .totalElements(pageTx.getTotalElements())
+        .totalPages(pageTx.getTotalPages())
+        .last(pageTx.isLast())
+        .build();
     }
 
     @Override
     public TransactionDto getLastByAccountId(Long accountId) {
-        var tr = transactionRepository.findFirstByAccountIdOrderByDateDesc(accountId).orElse(null);
-        return tr != null ? TransactionDto.fromEntity(tr) : null;
+        Transaction tr = transactionRepository.findFirstByAccountIdOrderByDateDesc(accountId).orElse(null);
+        return tr != null ? transactionMapper.toTransactionDto(tr) : null;
     }
 
 }

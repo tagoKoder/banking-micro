@@ -1,10 +1,10 @@
 package com.sofka.tagoKoder.backend.account.controller;
 
 import java.time.LocalDate;
-import java.util.Date;
-import java.util.List;
 
-import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -14,13 +14,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.sofka.tagoKoder.backend.account.exception.NotFoundException;
-import com.sofka.tagoKoder.backend.account.integration.client.ClientApiIntegration;
-import com.sofka.tagoKoder.backend.account.integration.client.dto.ClientDto;
 import com.sofka.tagoKoder.backend.account.model.dto.AccountDto;
 import com.sofka.tagoKoder.backend.account.model.dto.ApiResponse;
 import com.sofka.tagoKoder.backend.account.model.dto.BankStatementDto;
-import com.sofka.tagoKoder.backend.account.model.dto.BankStatementReportDto;
+import com.sofka.tagoKoder.backend.account.model.dto.PageResponse;
 import com.sofka.tagoKoder.backend.account.model.dto.TransactionDto;
 import com.sofka.tagoKoder.backend.account.service.AccountService;
 import com.sofka.tagoKoder.backend.account.service.TransactionService;
@@ -38,11 +35,14 @@ public class TransactionController {
 	}
 
 	@GetMapping
-	public ResponseEntity<ApiResponse<List<TransactionDto>>> getAll() {
+	public ResponseEntity<ApiResponse<PageResponse<TransactionDto>>> getAll(
+		@PageableDefault(size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable
+	) {
 		// api/transactions
 		// Get all transactions
+		var pageDto = transactionService.getAll(pageable);
 		return ResponseEntity.ok(
-				new ApiResponse<List<TransactionDto>>(true, "", transactionService.getAll()));
+				new ApiResponse<PageResponse<TransactionDto>>(true, "", pageDto));
 	}
 
 	@GetMapping("/{id}")
@@ -64,19 +64,19 @@ public class TransactionController {
 	}
 
 	@GetMapping("/reportes")
-	public ResponseEntity<ApiResponse<BankStatementReportDto>> report(
-			@RequestParam Long clienteId,
-			@RequestParam String fecha) {
+	public ResponseEntity<ApiResponse<PageResponse<BankStatementDto>>> report(
+		@RequestParam("clienteId") Long clienteId,
+		@RequestParam("fecha") String fecha,
+		@PageableDefault(size = 20, sort = "date", direction = Sort.Direction.ASC) Pageable pageable) {
 
-		// Parseo del rango: "2025-01-01,2025-01-31"
-		String[] parts = fecha.split(",");
-		if (parts.length != 2) {
-			throw new IllegalArgumentException("Parámetro 'fecha' inválido. Use 'YYYY-MM-DD,YYYY-MM-DD'.");
-		}
-		LocalDate start = LocalDate.parse(parts[0].trim());
-		LocalDate end   = LocalDate.parse(parts[1].trim());
+	String[] parts = fecha.split(",");
+	if (parts.length != 2) {
+		throw new IllegalArgumentException("Parámetro 'fecha' inválido. Use 'YYYY-MM-DD,YYYY-MM-DD'.");
+	}
+	LocalDate start = LocalDate.parse(parts[0].trim());
+	LocalDate end   = LocalDate.parse(parts[1].trim());
 
-		var report = transactionService.getStatement(clienteId, start, end);
-		return ResponseEntity.ok(new ApiResponse<>(true, "", report));
+	var page = transactionService.getStatementPage(clienteId, start, end, pageable);
+	return ResponseEntity.ok(new ApiResponse<>(true, "", page));
 	}
 }

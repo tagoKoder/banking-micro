@@ -3,7 +3,17 @@ package com.sofka.tagoKoder.backend.account.model;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 @Entity
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class Account extends Base {
     private String number;
     private String type;
@@ -11,61 +21,4 @@ public class Account extends Base {
     private boolean isActive;
     @Column(name = "client_id")
     private Long clientId;
-
-    public Account() {
-        this.number = "";
-        this.type = "";
-        this.initialAmount = 0;
-        this.isActive = false;
-        this.clientId = 0L;
-    }
-
-    public Account(String number, String type, double initialAmount, boolean isActive, Long clientId) {
-        this.number = number;
-        this.type = type;
-        this.initialAmount = initialAmount;
-        this.isActive = isActive;
-        this.clientId = clientId;
-    }
-
-    public String getNumber() {
-        return number;
-    }
-
-    public void setNumber(String number) {
-        this.number = number;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public double getInitialAmount() {
-        return initialAmount;
-    }
-
-    public void setInitialAmount(double initialAmount) {
-        this.initialAmount = initialAmount;
-    }
-
-    public boolean isActive() {
-        return isActive;
-    }
-
-    public void setActive(boolean isActive) {
-        this.isActive = isActive;
-    }
-
-    public Long getClientId() {
-        return clientId;
-    }
-
-    public void setClientId(Long clientId) {
-        this.clientId = clientId;
-    }
-
 }

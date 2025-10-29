@@ -15,6 +15,9 @@
 	<description>Backend project for Spring Boot</description>
 	<properties>
 		<java.version>11</java.version>
+		<testcontainers.version>1.20.2</testcontainers.version>
+		<mapstruct.version>1.5.5.Final</mapstruct.version>
+		<resilience4j.version>1.7.1</resilience4j.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -44,21 +47,116 @@
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
-			<optional>true</optional>
+			<version>${lombok.version}</version>
+    		<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+		  <dependency>
+			<groupId>org.mapstruct</groupId>
+			<artifactId>mapstruct</artifactId>
+			<version>${mapstruct.version}</version>
+		</dependency>
+		<!-- Driver JDBC de Postgres (usará la versión del BOM de Spring Boot) -->
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		  <!-- Testcontainers + Postgres -->
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<scope>test</scope>
+			<version>${testcontainers.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>postgresql</artifactId>
+			<scope>test</scope>
+			<version>${testcontainers.version}</version>
+		</dependency>
+		  <!-- AOP para que funcionen las anotaciones (@CircuitBreaker, @Retry, @Cacheable) -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-aop</artifactId>
+		</dependency>
+		  <!-- Resilience4j -->
+		<dependency>
+			<groupId>io.github.resilience4j</groupId>
+			<artifactId>resilience4j-spring-boot2</artifactId>
+			<version>${resilience4j.version}</version>
+		</dependency>
+
+		<!-- Cache -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-cache</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.github.ben-manes.caffeine</groupId>
+			<artifactId>caffeine</artifactId>
+		</dependency>
+
+		<!-- HttpClient -->
+		  <dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+		</dependency>
+
 	</dependencies>
 
 	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-			</plugin>
+    <plugins>
+      <!-- COMPILA y procesa anotaciones (AQUÍ va MapStruct y Lombok) -->
+		<plugin>
+			<groupId>org.apache.maven.plugins</groupId>
+			<artifactId>maven-compiler-plugin</artifactId>
+			<version>3.11.0</version>
+			<configuration>
+			<release>11</release>
+			<annotationProcessorPaths>
+				<path>
+				<groupId>org.mapstruct</groupId>
+				<artifactId>mapstruct-processor</artifactId>
+				<version>${mapstruct.version}</version>
+				</path>
+				<path>
+				<groupId>org.projectlombok</groupId>
+				<artifactId>lombok</artifactId>
+				<version>${lombok.version}</version>
+				</path>
+				<path>
+				<groupId>org.projectlombok</groupId>
+				<artifactId>lombok-mapstruct-binding</artifactId>
+				<version>0.2.0</version>
+				</path>
+			</annotationProcessorPaths>
+			</configuration>
+		</plugin>
+
+
+
+
+		<!-- Spring Boot -->
+		<plugin>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-maven-plugin</artifactId>
+		</plugin>
+
+		<!-- (Opcional) evita issues JPMS en JDK 11 con procesadores -->
+		<plugin>
+			<groupId>org.apache.maven.plugins</groupId>
+			<artifactId>maven-surefire-plugin</artifactId>
+			<version>2.22.2</version>
+			<configuration>
+			<useModulePath>false</useModulePath>
+			</configuration>
+		</plugin>
 		</plugins>
 	</build>
 

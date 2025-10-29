@@ -2,6 +2,7 @@ package com.sofka.tagoKoder.backend.account.controller;
 
 import java.util.List;
 
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,12 +14,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sofka.tagoKoder.backend.account.exception.NotFoundException;
-import com.sofka.tagoKoder.backend.account.integration.client.ClientApiIntegration;
+import com.sofka.tagoKoder.backend.account.integration.client.ClientGatewayImpl;
 import com.sofka.tagoKoder.backend.account.integration.client.dto.ClientDto;
 import com.sofka.tagoKoder.backend.account.model.dto.AccountDto;
 import com.sofka.tagoKoder.backend.account.model.dto.ApiResponse;
+import com.sofka.tagoKoder.backend.account.model.dto.PageResponse;
 import com.sofka.tagoKoder.backend.account.model.dto.PartialAccountDto;
 import com.sofka.tagoKoder.backend.account.service.AccountService;
+
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 @RestController
 @RequestMapping("/api/accounts")
@@ -31,11 +36,11 @@ public class AccountController {
 	}
 
 	@GetMapping
-	public ResponseEntity<ApiResponse<List<AccountDto>>> getAll() {
-		// api/accounts
-		// Get all accounts
-		return ResponseEntity.ok(
-				new ApiResponse<List<AccountDto>>(true, "", accountService.getAll()));
+	public ResponseEntity<ApiResponse<PageResponse<AccountDto>>> getAll(
+		@PageableDefault(size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable
+	) {
+	var pageDto = accountService.getAll(pageable);
+	return ResponseEntity.ok(new ApiResponse<>(true, "", pageDto));
 	}
 
 	@GetMapping("/{id}")

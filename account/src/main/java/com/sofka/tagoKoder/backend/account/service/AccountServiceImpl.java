@@ -3,12 +3,16 @@ package com.sofka.tagoKoder.backend.account.service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.sofka.tagoKoder.backend.account.exception.NotFoundException;
 import com.sofka.tagoKoder.backend.account.integration.client.ClientGateway;
+import com.sofka.tagoKoder.backend.account.mapper.AccountMapper;
 import com.sofka.tagoKoder.backend.account.model.Account;
 import com.sofka.tagoKoder.backend.account.model.dto.AccountDto;
+import com.sofka.tagoKoder.backend.account.model.dto.PageResponse;
 import com.sofka.tagoKoder.backend.account.model.dto.PartialAccountDto;
 import com.sofka.tagoKoder.backend.account.repository.AccountRepository;
 
@@ -17,23 +21,37 @@ public class AccountServiceImpl implements AccountService {
 
         private final AccountRepository accountRepository;
         private final ClientGateway clientGateway;
+        private final AccountMapper accountMapper;
 
-        public AccountServiceImpl(AccountRepository accountRepository, ClientGateway clientGateway) {
+        public AccountServiceImpl(AccountRepository accountRepository, ClientGateway clientGateway, AccountMapper accountMapper) {
                 this.accountRepository = accountRepository;
                 this.clientGateway = clientGateway;
+                this.accountMapper = accountMapper;
         }
 
         @Override
-        public List<AccountDto> getAll() {
-                // Get all accounts
-                return accountRepository.findAll().stream()
-                                .map(AccountDto::fromEntity).collect(Collectors.toList());
+        public PageResponse<AccountDto> getAll(Pageable pageable) {
+        Page<Account> page = accountRepository.findAll(pageable);
+        List<AccountDto> content = page.getContent()
+                .stream()
+                .map(accountMapper::toDto)
+                .collect(Collectors.toList());
+
+        return new PageResponse<>(
+                content,
+                page.getNumber(),
+                page.getSize(),
+                page.getTotalElements(),
+                page.getTotalPages(),
+                page.isLast()
+        );
         }
+
 
         @Override
         public List<AccountDto> getAllByClientId(Long clientId) {
                 return accountRepository.findAllByClientId(clientId).stream()
-                                .map(AccountDto::fromEntity).collect(Collectors.toList());
+                                .map(accountMapper::toDto).collect(Collectors.toList());
         }
 
         @Override
@@ -41,18 +59,17 @@ public class AccountServiceImpl implements AccountService {
                 // Get accounts by id
                 Account a = accountRepository.findById(id)
                                 .orElseThrow(() -> new NotFoundException("Account not found with id: " + id));
-                return AccountDto.fromEntity(a);
+                return accountMapper.toDto(a);
         }
 
         @Override
         public AccountDto create(AccountDto accountDto) {
                 clientGateway.getById(accountDto.getClientId())
                         .orElseThrow(() -> new NotFoundException("Client not found: " + accountDto.getClientId()));
-                
+                Account entity = accountMapper.toModel(accountDto);
+                Account saved= accountRepository.save(entity);
                 // Create account
-                return AccountDto.fromEntity(
-                                accountRepository.save(
-                                                accountDto.toEntity()));
+                return accountMapper.toDto(saved);
         }
 
         @Override
@@ -62,8 +79,8 @@ public class AccountServiceImpl implements AccountService {
                                 .orElseThrow(() -> new NotFoundException("Account not found with id: " + id));
                 a.setType(accountDto.getType());
                 a.setActive(accountDto.isActive());
-                return AccountDto.fromEntity(
-                                accountRepository.save(a));
+                Account saved= accountRepository.save(a);
+                return accountMapper.toDto(saved);
         }
 
         @Override
@@ -72,8 +89,8 @@ public class AccountServiceImpl implements AccountService {
                 Account a = accountRepository.findById(id)
                                 .orElseThrow(() -> new NotFoundException("Account not found with id: " + id));
                 a.setActive(partialAccountDto.isActive());
-                return AccountDto.fromEntity(
-                                accountRepository.save(a));
+                Account saved= accountRepository.save(a);
+                return accountMapper.toDto(saved);
         }
 
         @Override

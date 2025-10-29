@@ -6,8 +6,12 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.Data;
 
-@Data @NoArgsConstructor @AllArgsConstructor @Builder
+@Data 
+@NoArgsConstructor 
+@AllArgsConstructor 
+@Builder
 public class AccountWithMovementsDto {
     private AccountDto account;
     private double finalBalance;
