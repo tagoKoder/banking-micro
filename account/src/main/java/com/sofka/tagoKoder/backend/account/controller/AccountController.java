@@ -28,7 +28,7 @@ public class AccountController {
         .map(pr -> ResponseEntity.ok(new ApiResponse<>(true, "", pr)));
   }
 
-  @GetMapping("/{clientId}")
+  @GetMapping("/client/{clientId}")
   public ResponseEntity<Flux<AccountDto>> getAllByClient(@PathVariable Long clientId) {
     // Si quieres envolver con ApiResponse reactivo, también se puede:
     // return accountService.getAllByClientId(clientId).collectList().map(list -> new ApiResponse<>(true, "", list));

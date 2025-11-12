@@ -2,6 +2,7 @@ package com.sofka.tagoKoder.backend.account.controller;
 
 import java.time.LocalDate;
 
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -32,10 +33,14 @@ public class TransactionController {
 
   @GetMapping
   public Mono<ApiResponse<PageResponse<TransactionDto>>> getAll(
-      @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable
+      @RequestParam(defaultValue = "0") int pageNumber,
+      @RequestParam(defaultValue = "10") int size,
+      @RequestParam(defaultValue = "id") String sort,
+      @RequestParam(defaultValue = "ASC") Sort.Direction direction
   ) {
+    var pageable = PageRequest.of(pageNumber, size, Sort.by(direction, sort));
     return transactionService.getAll(pageable)
-        .map(page -> new ApiResponse<>(true, "", page));
+        .map(result -> new ApiResponse<>(true, "", result));
   }
 
   @GetMapping("/{id}")
@@ -54,11 +59,28 @@ public class TransactionController {
   public Mono<ApiResponse<PageResponse<BankStatementDto>>> report(
       @RequestParam("clienteId") Long clienteId,
       @RequestParam("fecha") String fecha,
-      @PageableDefault(size = 20, sort = "date", direction = Sort.Direction.ASC) Pageable pageable) {
+      @RequestParam(defaultValue = "0") int pageNumber,
+      @RequestParam(defaultValue = "10") int size,
+      @RequestParam(defaultValue = "id") String sort,
+      @RequestParam(defaultValue = "ASC") Sort.Direction direction
+  ) {
+    // Normalizar: aceptar "campo,desc" o "campo" + direction separado
+    String sortProp = sort;
+    Sort.Direction dir = direction;
+    if (sort.contains(",")) {
+      String[] s = sort.split(",");
+      sortProp = s[0].trim();
+      if (s.length > 1 && !s[1].isBlank()) {
+        dir = Sort.Direction.fromString(s[1].trim());
+      }
+    }
+
+    Pageable pageable = PageRequest.of(pageNumber, size, Sort.by(dir, sortProp));
 
     String[] parts = fecha.split(",");
     if (parts.length != 2) {
-      return Mono.error(new IllegalArgumentException("Parámetro 'fecha' inválido. Use 'YYYY-MM-DD,YYYY-MM-DD'."));
+      return Mono.error(new IllegalArgumentException(
+          "Parámetro 'fecha' inválido. Use 'YYYY-MM-DD,YYYY-MM-DD'."));
     }
     LocalDate start = LocalDate.parse(parts[0].trim());
     LocalDate end   = LocalDate.parse(parts[1].trim());
@@ -66,4 +88,5 @@ public class TransactionController {
     return transactionService.getStatementPage(clienteId, start, end, pageable)
         .map(page -> new ApiResponse<>(true, "", page));
   }
+
 }

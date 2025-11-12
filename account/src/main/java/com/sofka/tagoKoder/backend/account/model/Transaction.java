@@ -1,12 +1,11 @@
 package com.sofka.tagoKoder.backend.account.model;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
-import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -21,7 +20,7 @@ public class Transaction {
 	@Id
 	private Long id;
 	@Column("date")
-	private Date date;
+	private LocalDateTime date;
 	@Column("type")
 	private String type;
 	@Column("amount")
