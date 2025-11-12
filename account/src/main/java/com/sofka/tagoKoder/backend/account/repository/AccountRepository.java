@@ -1,13 +1,12 @@
 package com.sofka.tagoKoder.backend.account.repository;
 
-import java.util.List;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 
 import com.sofka.tagoKoder.backend.account.model.Account;
 
-@Repository
-public interface AccountRepository extends JpaRepository<Account, Long> {
-    List<Account> findAllByClientId(Long clientId);
+import reactor.core.publisher.Flux;
+
+public interface AccountRepository extends ReactiveCrudRepository<Account, Long> {
+    Flux<Account> findAllByClientId(Long clientId);
 }

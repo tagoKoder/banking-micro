@@ -10,12 +10,14 @@ import com.sofka.tagoKoder.backend.account.model.dto.BankStatementReportDto;
 import com.sofka.tagoKoder.backend.account.model.dto.PageResponse;
 import com.sofka.tagoKoder.backend.account.model.dto.TransactionDto;
 
+import reactor.core.publisher.Mono;
+
 public interface TransactionService {
 
-    public PageResponse<TransactionDto> getAll(Pageable pageable);
-	public TransactionDto getById(Long id);
-	public TransactionDto create(TransactionDto transactionDto, double accInitialAmount);
-    public PageResponse<BankStatementDto> getStatementPage(
-    Long clientId, LocalDate start, LocalDate end, Pageable pageable);
-    public TransactionDto getLastByAccountId(Long accountId);
+    public Mono<PageResponse<TransactionDto>> getAll(Pageable pageable);
+    public Mono<TransactionDto> getById(Long id) ;
+    public Mono<TransactionDto> create(TransactionDto transactionDto);
+    public Mono<PageResponse<BankStatementDto>> getStatementPage(
+      Long clientId, LocalDate start, LocalDate end, Pageable pageable);
+
 }

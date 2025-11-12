@@ -1,7 +1,9 @@
 package com.sofka.tagoKoder.backend.account.model;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
+
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Table;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -9,16 +11,23 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Entity
+@Table("accounts")
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class Account extends Base {
+public class Account {
+    @Id
+    private Long id;
+    @Column("number")
     private String number;
+    @Column("type")
     private String type;
+    @Column("initial_amount")
     private double initialAmount;
+    @Column("is_active")
     private boolean isActive;
-    @Column(name = "client_id")
+    @Column("client_id")
     private Long clientId;
+    
 }

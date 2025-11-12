@@ -1,87 +1,69 @@
 package com.sofka.tagoKoder.backend.account.controller;
 
-import java.util.List;
-
-import org.springframework.data.web.PageableDefault;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.sofka.tagoKoder.backend.account.exception.NotFoundException;
-import com.sofka.tagoKoder.backend.account.integration.client.ClientGatewayImpl;
-import com.sofka.tagoKoder.backend.account.integration.client.dto.ClientDto;
-import com.sofka.tagoKoder.backend.account.model.dto.AccountDto;
-import com.sofka.tagoKoder.backend.account.model.dto.ApiResponse;
-import com.sofka.tagoKoder.backend.account.model.dto.PageResponse;
-import com.sofka.tagoKoder.backend.account.model.dto.PartialAccountDto;
+import com.sofka.tagoKoder.backend.account.model.dto.*;
 import com.sofka.tagoKoder.backend.account.service.AccountService;
-
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Mono;
+import reactor.core.publisher.Flux;
 
 @RestController
 @RequestMapping("/api/accounts")
 public class AccountController {
 
-	private final AccountService accountService;
+  private final AccountService accountService;
 
-	public AccountController(AccountService accountService) {
-		this.accountService = accountService;
-	}
+  public AccountController(AccountService accountService) {
+    this.accountService = accountService;
+  }
 
-	@GetMapping
-	public ResponseEntity<ApiResponse<PageResponse<AccountDto>>> getAll(
-		@PageableDefault(size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable
-	) {
-	var pageDto = accountService.getAll(pageable);
-	return ResponseEntity.ok(new ApiResponse<>(true, "", pageDto));
-	}
+  @GetMapping
+  public Mono<ResponseEntity<ApiResponse<PageResponse<AccountDto>>>> getAll(
+      @RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "10") int size,
+      @RequestParam(defaultValue = "id") String sortBy,
+      @RequestParam(defaultValue = "asc") String direction
+  ) {
+    return accountService.getAll(page, size, sortBy, direction)
+        .map(pr -> ResponseEntity.ok(new ApiResponse<>(true, "", pr)));
+  }
 
-	@GetMapping("/{id}")
-	public ResponseEntity<ApiResponse<AccountDto>> get(@PathVariable Long id) {
-		// api/accounts/{id}
-		// Get accounts by id
-		return ResponseEntity.ok(
-				new ApiResponse<AccountDto>(true, "", accountService.getById(id)));
-	}
+  @GetMapping("/{clientId}")
+  public ResponseEntity<Flux<AccountDto>> getAllByClient(@PathVariable Long clientId) {
+    // Si quieres envolver con ApiResponse reactivo, también se puede:
+    // return accountService.getAllByClientId(clientId).collectList().map(list -> new ApiResponse<>(true, "", list));
+    return ResponseEntity.ok(accountService.getAllByClientId(clientId));
+  }
 
-	@PostMapping
-	public ResponseEntity<ApiResponse<AccountDto>> create(@RequestBody AccountDto accountDto) {
-		// api/accounts
-		// Create accounts
-		// Validate first if the client exist
-		return ResponseEntity.ok(
-				new ApiResponse<AccountDto>(true, "", accountService.create(accountDto)));
-	}
+  @GetMapping("/{id}")
+  public Mono<ResponseEntity<ApiResponse<AccountDto>>> get(@PathVariable Long id) {
+    return accountService.getById(id)
+        .map(dto -> ResponseEntity.ok(new ApiResponse<>(true, "", dto)));
+  }
 
-	@PutMapping("/{id}")
-	public ResponseEntity<ApiResponse<AccountDto>> update(@PathVariable Long id, @RequestBody AccountDto accountDto) {
-		// api/accounts/{id}
-		// Update accounts
-		return ResponseEntity.ok(
-				new ApiResponse<AccountDto>(true, "", accountService.update(id, accountDto)));
-	}
+  @PostMapping
+  public Mono<ResponseEntity<ApiResponse<AccountDto>>> create(@RequestBody Mono<AccountDto> body) {
+    return body.flatMap(accountService::create)
+        .map(dto -> ResponseEntity.ok(new ApiResponse<>(true, "", dto)));
+  }
 
-	@PutMapping("/partial/{id}")
-	public ResponseEntity<ApiResponse<AccountDto>> partialUpdate(@PathVariable Long id,
-			@RequestBody PartialAccountDto partialAccountDto) {
-		// api/accounts/{id}
-		// Partial update accounts
-		return ResponseEntity.ok(
-				new ApiResponse<AccountDto>(true, "", accountService.partialUpdate(id, partialAccountDto)));
-	}
+  @PutMapping("/{id}")
+  public Mono<ResponseEntity<ApiResponse<AccountDto>>> update(@PathVariable Long id,
+                                                             @RequestBody Mono<AccountDto> body) {
+    return body.flatMap(dto -> accountService.update(id, dto))
+        .map(dto -> ResponseEntity.ok(new ApiResponse<>(true, "", dto)));
+  }
 
-	@DeleteMapping
-	public ResponseEntity<ApiResponse> delete(@PathVariable Long id) {
-		// api/accounts/{id}
-		// Delete accounts
-		accountService.deleteById(id);
-		return ResponseEntity.ok(new ApiResponse<>(true, "", null));
-	}
+  @PutMapping("/partial/{id}")
+  public Mono<ResponseEntity<ApiResponse<AccountDto>>> partialUpdate(@PathVariable Long id,
+      @RequestBody Mono<PartialAccountDto> body) {
+    return body.flatMap(dto -> accountService.partialUpdate(id, dto))
+        .map(dto -> ResponseEntity.ok(new ApiResponse<>(true, "", dto)));
+  }
+
+  @DeleteMapping("/{id}")
+  public Mono<ResponseEntity<ApiResponse<Void>>> delete(@PathVariable Long id) {
+    return accountService.deleteById(id)
+        .thenReturn(ResponseEntity.ok(new ApiResponse<>(true, "", null)));
+  }
 }
