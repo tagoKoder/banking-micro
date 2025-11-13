@@ -1,0 +1,69 @@
+server:
+  port: 8080
+
+spring:
+  r2dbc:
+    # Dentro de la red de Docker usa el hostname del servicio: "postgres"
+    url: r2dbc:postgresql://postgres:5432/accountdb
+    username: postgres
+    password: postgres
+
+  flyway:
+    enabled: true
+    # Flyway usa JDBC (no R2DBC). Igual: hostname "postgres" y puerto interno 5432
+    url: jdbc:postgresql://postgres:5432/accountdb
+    user: postgres
+    password: postgres
+    locations: classpath:db/migration
+    schemas: public
+    baseline-on-migrate: true
+    driver-class-name: org.postgresql.Driver
+
+  cache:
+    cache-names: [clients]
+    caffeine:
+      spec: maximumSize=10000,expireAfterWrite=10m
+
+logging:
+  level:
+    org.springframework.r2dbc: DEBUG
+    io.r2dbc.h2: DEBUG
+
+# Llamadas internas entre contenedores (usa el nombre del servicio "client")
+client:
+  service:
+    base-url: http://client:8081/api/clients
+
+# Resilience4j (ajustado a WebClient, no RestTemplate)
+resilience4j:
+  circuitbreaker:
+    instances:
+      clientService:
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 20              # ventana de evaluación (20 llamadas)
+        minimumNumberOfCalls: 10           # no evalúa umbrales antes de 10 llamadas
+        failureRateThreshold: 50           # abre si >= 50% fallan
+        slowCallDurationThreshold: 2s      # llamadas lentas > 2s
+        slowCallRateThreshold: 50          # considera lento si >= 50% son lentas
+        permittedNumberOfCallsInHalfOpenState: 5
+        waitDurationInOpenState: 30s       # tiempo abierto antes de pasar a half-open
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        recordExceptions:
+          - org.springframework.web.reactive.function.client.WebClientRequestException
+          - org.springframework.web.reactive.function.client.WebClientResponseException
+  retry:
+    instances:
+      clientService:
+        maxAttempts: 3                     # 1 intento inicial + 2 reintentos
+        waitDuration: 200ms                # backoff base
+        enableExponentialBackoff: true
+        exponentialBackoffMultiplier: 2.0  # 200ms, 400ms
+        retryExceptions:
+          - org.springframework.web.reactive.function.client.WebClientRequestException   # timeouts/conexión
+        ignoreExceptions:
+          - org.springframework.web.reactive.function.client.WebClientResponseException$BadRequest  # 400 no reintentar
+  bulkhead:
+    instances:
+      clientService:
+        maxConcurrentCalls: 10
+        maxWaitDuration: 0                  # no esperar si está saturado

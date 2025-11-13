@@ -8,7 +8,6 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class BankStatementDto {
-
 	private Date date;
 	private String client;
 	private String accountNumber;

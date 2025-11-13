@@ -6,9 +6,11 @@ import com.sofka.tagoKoder.backend.account.model.Transaction;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class TransactionDto {
 	private Long id;
 	private Date date;

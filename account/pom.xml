@@ -181,9 +181,45 @@
 			<scope>runtime</scope>
 		</dependency>
 
+		<dependency>
+			<groupId>org.openjdk.jmh</groupId>
+			<artifactId>jmh-core</artifactId>
+			<version>1.37</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.openjdk.jmh</groupId>
+			<artifactId>jmh-generator-annprocess</artifactId>
+			<version>1.37</version>
+			<scope>test</scope>
+		</dependency>
+
+
 	</dependencies>
 
 	<build>
+	  <resources>
+    <!-- YAML y archivos estáticos: SIN filtrado -->
+    <resource>
+      <directory>src/main/resources</directory>
+      <filtering>false</filtering>
+      <includes>
+        <include>**/*.yml</include>
+        <include>**/*.yaml</include>
+        <include>**/*.xml</include>
+        <include>**/*.json</include>
+      </includes>
+    </resource>
+
+    <!-- Solo .properties con filtrado (si lo necesitas) -->
+    <resource>
+      <directory>src/main/resources</directory>
+      <filtering>true</filtering>
+      <includes>
+        <include>**/*.properties</include>
+      </includes>
+    </resource>
+  </resources>
     <plugins>
       <!--  MapStruct y Lombok -->
 		<plugin>
