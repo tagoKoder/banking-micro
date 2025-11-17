@@ -1,0 +1,146 @@
+openapi: 3.0.3
+info:
+  title: Client Service API
+  version: 1.0.0
+servers:
+  - url: http://localhost:8081
+paths:
+  /api/clients:
+    get:
+      tags: [Clients]
+      summary: Listar clientes
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiResponseListClientDto' }
+    post:
+      tags: [Clients]
+      summary: Crear cliente
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ClientCreateDto' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiResponseClientDto' }
+
+  /api/clients/{id}:
+    get:
+      tags: [Clients]
+      summary: Obtener cliente por id
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiResponseClientDto' }
+        '404':
+          description: No encontrado
+    put:
+      tags: [Clients]
+      summary: Actualizar cliente
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer, format: int64 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ClientDto' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiResponseClientDto' }
+    delete:
+      tags: [Clients]
+      summary: Eliminar cliente
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiResponseVoid' }
+
+  /api/clients/partial/{id}:
+    put:
+      tags: [Clients]
+      summary: Actualizar parcialmente cliente
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer, format: int64 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PartialClientDto' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiResponseClientDto' }
+
+components:
+  schemas:
+    ApiResponseClientDto:
+      type: object
+      properties:
+        success: { type: boolean }
+        message: { type: string }
+        data: { $ref: '#/components/schemas/ClientDto' }
+    ApiResponseListClientDto:
+      type: object
+      properties:
+        success: { type: boolean }
+        message: { type: string }
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/ClientDto' }
+    ApiResponseVoid:
+      type: object
+      properties:
+        success: { type: boolean }
+        message: { type: string }
+        data: { nullable: true }
+    ClientDto:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        name: { type: string }
+        document: { type: string }
+        email: { type: string, format: email }
+    ClientCreateDto:
+      type: object
+      required: [name, document, email]
+      properties:
+        name: { type: string }
+        document: { type: string }
+        email: { type: string, format: email }
+    PartialClientDto:
+      type: object
+      properties:
+        name: { type: string }
+        document: { type: string }
+        email: { type: string, format: email }

@@ -23,6 +23,13 @@ spring:
     cache-names: [clients]
     caffeine:
       spec: maximumSize=10000,expireAfterWrite=10m
+    kafka:
+    bootstrap-servers: broker:9092
+
+kafka:
+  topics:
+    account: account.events
+    transaction: transaction.events
 
 logging:
   level:

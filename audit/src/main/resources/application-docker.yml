@@ -1,0 +1,35 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://audit_db:5432/auditdb
+    username: postgres
+    password: postgres
+
+  kafka:
+    bootstrap-servers: broker:9092
+    consumer:
+      group-id: audit-consumer
+      enable-auto-commit: false
+      auto-offset-reset: earliest
+
+      key-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+
+      properties:
+        spring.deserializer.key.delegate.class: org.apache.kafka.common.serialization.StringDeserializer
+        spring.deserializer.value.delegate.class: org.apache.kafka.common.serialization.StringDeserializer
+        # spring.json.trusted.packages: "*"
+
+    listener:
+      ack-mode: manual
+
+  flyway:
+    enabled: true
+
+kafka:
+  topics:
+    account: account.events
+    client: client.events
+    dlt: audit.dlt
+
+server:
+  port: 8082

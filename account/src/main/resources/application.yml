@@ -21,6 +21,22 @@ spring:
     cache-names: clients
     caffeine:
       spec: maximumSize=10000,expireAfterWrite=10m
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      acks: 0                 # fire-and-forget
+      retries: 0
+      # recorta cualquier bloqueo si no hay broker
+      properties:
+        request.timeout.ms: 1500
+        delivery.timeout.ms: 1500
+        max.block.ms: 1000
+        metadata.max.age.ms: 1000
+
+kafka:
+  topics:
+    account: account.events
+    transaction: transaction.events
 
 server:
   port: 8080
@@ -32,6 +48,8 @@ logging:
     root: INFO
     org.flywaydb: INFO
     org.springframework.r2dbc: INFO
+    org.springframework.web.reactive.function.client: DEBUG
+    reactor.netty.http.client: DEBUG
 
 # --- Servicio externo ---
 client:

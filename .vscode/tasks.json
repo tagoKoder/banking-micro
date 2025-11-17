@@ -1,0 +1,28 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Tests (account) – mvnw surefire debug",
+      "type": "shell",
+      "options": {
+        "cwd": "${workspaceFolder}/account",
+        "shell": { "executable": "cmd.exe", "args": ["/d", "/c"] }
+      },
+      "command": "mvnw.cmd",
+      "args": [
+        "test",
+        "-Dmaven.surefire.debug",
+        "-Dspring.profiles.active=test",
+        "-Dspring.flyway.enabled=false"
+      ],
+      "problemMatcher": "$javac"
+    },
+    {
+      "label": "Kill mvnw (Windows)",
+      "type": "shell",
+      "options": { "shell": { "executable": "cmd.exe", "args": ["/d", "/c"] } },
+      "command": "taskkill /F /IM java.exe /T",
+      "problemMatcher": []
+    }
+  ]
+}

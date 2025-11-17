@@ -1,0 +1,55 @@
+spring:
+  application:
+    name: audit
+
+  datasource:
+    url: jdbc:postgresql://localhost:5434/auditdb
+    username: postgres
+    password: postgres
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQL10Dialect
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: audit-consumer
+      enable-auto-commit: false
+      auto-offset-reset: earliest
+
+      # ✅ En 2.6.x usa ErrorHandlingDeserializer (no el "2")
+      key-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+
+      # Delegados reales (como procesas String)
+      properties:
+        spring.deserializer.key.delegate.class: org.apache.kafka.common.serialization.StringDeserializer
+        spring.deserializer.value.delegate.class: org.apache.kafka.common.serialization.StringDeserializer
+        # Si luego usas JsonDeserializer, podrías necesitar:
+        # spring.json.trusted.packages: "*"
+
+    listener:
+      ack-mode: manual # equivalente a MANUAL en propiedades
+
+kafka:
+  topics:
+    account: account.events
+    client: client.events
+    dlt: audit.dlt
+
+server:
+  port: 8082
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
