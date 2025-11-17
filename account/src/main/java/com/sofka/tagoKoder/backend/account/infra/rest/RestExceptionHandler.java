@@ -1,5 +1,5 @@
 package com.sofka.tagoKoder.backend.account.infra.rest;
-/*
+
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -93,4 +93,3 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
         .body(ApiResponse.fail("Unexpected internal error"));
   }
 }
-*/
